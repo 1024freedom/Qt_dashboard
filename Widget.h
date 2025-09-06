@@ -20,10 +20,17 @@ public:
     ~Widget();
 protected:
     void paintEvent(QPaintEvent *event)override;
+    void initCanvas(QPainter& painter);
+    void drawMiddleCircle(QPainter& painter, int r);
+    void drawMiddleValue(QPainter& painter);
+    void drawGradation(QPainter& painter);
+    void drawPointer(QPainter& painter, int r);
+    void draw_Pie(QPainter& painter, int r);
 private:
     Ui::Widget* ui;
     QTimer* timer;
     int currentValue;
+    double angle;
     bool flag;//记录刻度状态
 };
 #endif // WIDGET_H

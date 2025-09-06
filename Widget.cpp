@@ -6,9 +6,10 @@ Widget::Widget(QWidget *parent)
     , ui(new Ui::Widget) {
     ui->setupUi(this);
     timer = new QTimer(this);
+    angle = 270.0 / 60.0;
     currentValue = 0;
     flag = false;
-    connect(timer, &QTimer::timeout, [ = ]() {
+    connect(timer, &QTimer::timeout, this, [ = ]() {
         if (flag) {
             currentValue--;
             if (currentValue <= 0) {
@@ -29,8 +30,7 @@ Widget::Widget(QWidget *parent)
 Widget::~Widget() {
     delete ui;
 }
-void Widget::paintEvent(QPaintEvent *event) {
-    QPainter painter(this);
+void Widget::initCanvas(QPainter& painter) {
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setBrush(Qt::black);
     painter.drawRect(rect());
@@ -44,20 +44,21 @@ void Widget::paintEvent(QPaintEvent *event) {
     // painter.setBrush(brush);
     // //画大圆
     // painter.drawEllipse(QPoint(0, 0), height() / 2, height() / 2);
+}
+void Widget::drawMiddleCircle(QPainter &painter, int r) {
     //画小圆
     painter.setPen(QPen(Qt::white, 3));
     painter.setBrush(Qt::NoBrush);
-    painter.drawEllipse(QPoint(0, 0), height() / 8, height() / 8);
+    painter.drawEllipse(QPoint(0, 0), r, r);
     painter.save();//保存初始坐标系位置
-    //画值
+}
+void Widget::drawMiddleValue(QPainter &painter) {
     painter.setFont(QFont("楷体", 30));
     painter.drawText(QRect(-60, -60, 120, 120), Qt::AlignCenter, QString::number(currentValue));
-    //画大刻度
-    painter.drawLine(height() / 2 - 15, 0, height() / 2 - 1, 0);
-
-    //画小刻度
+}
+void Widget::drawGradation(QPainter &painter) {
+    //画刻度
     painter.setFont(QFont("华文宋体", 15));
-    double angle = 270.0 / 60.0;
     //旋转坐标系
     painter.rotate(135);//旋转135度(相比前一次的painter位置旋转)
 
@@ -86,14 +87,33 @@ void Widget::paintEvent(QPaintEvent *event) {
         }
         painter.rotate(angle);
     }
-    //画指针
+}
+void Widget::drawPointer(QPainter &painter, int r) {
     painter.restore();//坐标轴回到初始位置
     painter.save();
     painter.rotate(135 + currentValue * angle);
-    painter.drawLine(height() / 8, 0, height() / 2 - 62, 0);
-    //画扇形
+    painter.drawLine(r, 0, r * 4 - 62, 0);
+}
+void Widget::draw_Pie(QPainter &painter, int r) {
     painter.restore();
     painter.setPen(Qt::NoPen);
     painter.setBrush(QColor(255, 0, 0, 150));
-    painter.drawPie(QRect(-height() / 2 + 60, -height() / 2 + 60, height() - 120, height() - 120), (- 135) * 16, -angle * currentValue * 16);
+    painter.drawPie(QRect(-r / 2 + 60, -r / 2 + 60, r - 120, r - 120), (- 135) * 16, -angle * currentValue * 16);
+}
+void Widget::paintEvent(QPaintEvent *event) {
+    QPainter painter(this);
+    //初始化画布
+    initCanvas(painter);
+    //画小圆
+    drawMiddleCircle(painter, height() / 8);
+    //画值
+    drawMiddleValue(painter);
+
+    //画刻度
+    drawGradation(painter);
+    //画指针
+
+    drawPointer(painter, height() / 8);
+    //画扇形
+    draw_Pie(painter, height());
 }
