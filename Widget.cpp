@@ -36,14 +36,14 @@ void Widget::paintEvent(QPaintEvent *event) {
     painter.drawRect(rect());
     painter.translate(rect().center());
 
-    QRadialGradient radialGradient(0, 0, height() / 2); //径向渐变
-    radialGradient.setColorAt(0.0, QColor(255, 0, 0, 50)); //中心颜色
-    radialGradient.setColorAt(1.0, QColor(255, 0, 0, 250)); //外围颜色
+    // QRadialGradient radialGradient(0, 0, height() / 2); //径向渐变
+    // radialGradient.setColorAt(0.0, QColor(255, 0, 0, 50)); //中心颜色
+    // radialGradient.setColorAt(1.0, QColor(255, 0, 0, 250)); //外围颜色
 
-    QBrush brush(radialGradient);
-    painter.setBrush(brush);
-    //画大圆
-    painter.drawEllipse(QPoint(0, 0), height() / 2, height() / 2);
+    // QBrush brush(radialGradient);
+    // painter.setBrush(brush);
+    // //画大圆
+    // painter.drawEllipse(QPoint(0, 0), height() / 2, height() / 2);
     //画小圆
     painter.setPen(QPen(Qt::white, 3));
     painter.setBrush(Qt::NoBrush);
@@ -53,32 +53,36 @@ void Widget::paintEvent(QPaintEvent *event) {
     painter.setFont(QFont("楷体", 30));
     painter.drawText(QRect(-60, -60, 120, 120), Qt::AlignCenter, QString::number(currentValue));
     //画大刻度
-    //旋转坐标系
     painter.drawLine(height() / 2 - 15, 0, height() / 2 - 1, 0);
-    painter.rotate(45);//旋转45度
-    painter.drawLine(height() / 2 - 15, 0, height() / 2 - 1, 0);
-    painter.rotate(90);//相比前一次的painter位置旋转90度
-    painter.drawLine(height() / 2 - 15, 0, height() / 2 - 1, 0);
-    for (int i = 0; i < 4; i++) {
-        painter.rotate(45);
-        painter.drawLine(height() / 2 - 15, 0, height() / 2 - 1, 0);
-    }
 
     //画小刻度
     painter.setFont(QFont("华文宋体", 15));
     double angle = 270.0 / 60.0;
-    painter.rotate(180);
+    //旋转坐标系
+    painter.rotate(135);//旋转135度(相比前一次的painter位置旋转)
+
+    int r = height() / 2 - 40; //刻度数值所在的圆周的半径
+    double x, y; //以中心为原点，水平向右为x轴正方向建立平面直角坐标系
+    double targetX;//绘制刻度值时的目标坐标原点x坐标(本坐标系),只需往x方向移动
+    double angle_move;//指针相对于零刻度移动的角度
+    //angle_move=angle*i%45 sin(angle_move)=y/r cos(angle_move)=x/r
     for (int i = 0; i <= 60; i++) {
-        painter.drawLine(height() / 2 - 6, 0, height() / 2 - 1, 0);
-        if (i % 10 == 0) {
-            if (i == 10 || i == 20) {
-                painter.rotate(180);
-                painter.drawText(-height() / 2 + 30, 4, QString::number(i));
-                painter.rotate(-180);
-            } else {
-                painter.drawText(height() / 2 - 50, 4, QString::number(i));
-            }
+        if (i % 5 == 0) {
+            angle_move = fmod(angle * i, 45.0);
+            x = cos(angle_move) * r;
+            y = sin(angle_move) * r;
+            targetX = sqrt(x * x + y * y);
+            painter.save();//保存原位置
+            painter.translate(targetX, 0);
+            painter.rotate(90);
+            painter.drawText(-10, 4, QString::number(i * 4));
+            painter.restore();//恢复原位置
+            //画大刻度
+            painter.drawLine(height() / 2 - 15, 0, height() / 2 - 1, 0);
             //painter.drawText(height() / 2 - 50, 4, QString::number(i));注意第二个参数
+        } else {
+            //画小刻度
+            painter.drawLine(height() / 2 - 6, 0, height() / 2 - 1, 0);
         }
         painter.rotate(angle);
     }
