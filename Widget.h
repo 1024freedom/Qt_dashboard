@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QPainter>
 #include <QPaintEvent>
+#include<QTimer>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -21,5 +22,8 @@ protected:
     void paintEvent(QPaintEvent *event)override;
 private:
     Ui::Widget* ui;
+    QTimer* timer;
+    int currentValue;
+    bool flag;//记录刻度状态
 };
 #endif // WIDGET_H
