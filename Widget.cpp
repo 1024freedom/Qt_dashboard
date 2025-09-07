@@ -37,11 +37,11 @@ void Widget::initCanvas(QPainter& painter) {
     painter.translate(rect().center());
     //表盘外部光圈
     painter.setPen(Qt::NoPen);
-    QRadialGradient radialGradient0(0, 0, height() / 2 + 30); //径向渐变
+    QRadialGradient radialGradient0(0, 0, height() / 2 + 25); //径向渐变
     radialGradient0.setColorAt(0.85, QColor(Qt::black)); //中心颜色
     radialGradient0.setColorAt(1.0, QColor(Qt::red)); //外围颜色
     painter.setBrush(radialGradient0);
-    painter.drawEllipse(QPoint(0, 0), height() / 2 + 30, height() / 2 + 30);
+    painter.drawEllipse(QPoint(0, 0), height() / 2 + 25, height() / 2 + 25);
     //表盘背景
     QRadialGradient radialGradient(0, 0, height() / 2); //径向渐变
     radialGradient.setColorAt(0.0, QColor(Qt::gray)); //中心颜色
@@ -61,7 +61,7 @@ void Widget::drawMiddleValue(QPainter &painter) {
     QFont font_value("楷体", 30, QFont::Bold);
     QFont font_string("楷体", 15, QFont::Bold);
     painter.setFont(font_value);
-    painter.drawText(QRect(-60, -60, 120, 70), Qt::AlignCenter, QString::number(currentValue));
+    painter.drawText(QRect(-60, -60, 120, 70), Qt::AlignCenter, QString::number(currentValue * 4));
     painter.setFont(font_string);
     painter.drawText(QRect(-60, -60, 120, 160), Qt::AlignCenter, "Km/h");
 }
