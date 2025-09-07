@@ -33,17 +33,21 @@ Widget::~Widget() {
 void Widget::initCanvas(QPainter& painter) {
     painter.setRenderHint(QPainter::Antialiasing, true);
     painter.setBrush(Qt::black);
-    painter.drawRect(rect());
+    painter.drawRect(rect());//画面背景色
     painter.translate(rect().center());
-
-    // QRadialGradient radialGradient(0, 0, height() / 2); //径向渐变
-    // radialGradient.setColorAt(0.0, QColor(255, 0, 0, 50)); //中心颜色
-    // radialGradient.setColorAt(1.0, QColor(255, 0, 0, 250)); //外围颜色
-
-    // QBrush brush(radialGradient);
-    // painter.setBrush(brush);
-    // //画大圆
-    // painter.drawEllipse(QPoint(0, 0), height() / 2, height() / 2);
+    //表盘外部光圈
+    painter.setPen(Qt::NoPen);
+    QRadialGradient radialGradient0(0, 0, height() / 2 + 30); //径向渐变
+    radialGradient0.setColorAt(0.85, QColor(Qt::black)); //中心颜色
+    radialGradient0.setColorAt(1.0, QColor(Qt::red)); //外围颜色
+    painter.setBrush(radialGradient0);
+    painter.drawEllipse(QPoint(0, 0), height() / 2 + 30, height() / 2 + 30);
+    //表盘背景
+    QRadialGradient radialGradient(0, 0, height() / 2); //径向渐变
+    radialGradient.setColorAt(0.0, QColor(Qt::gray)); //中心颜色
+    radialGradient.setColorAt(1.0, QColor(Qt::black)); //外围颜色
+    painter.setBrush(radialGradient);
+    painter.drawEllipse(QPoint(0, 0), height() / 2, height() / 2);
 }
 void Widget::drawMiddleCircle(QPainter &painter, int r) {
     //画小圆
@@ -53,12 +57,18 @@ void Widget::drawMiddleCircle(QPainter &painter, int r) {
     painter.save();//保存初始坐标系位置
 }
 void Widget::drawMiddleValue(QPainter &painter) {
-    painter.setFont(QFont("楷体", 30));
-    painter.drawText(QRect(-60, -60, 120, 120), Qt::AlignCenter, QString::number(currentValue));
+    painter.setPen(Qt::white);
+    QFont font_value("楷体", 30, QFont::Bold);
+    QFont font_string("楷体", 15, QFont::Bold);
+    painter.setFont(font_value);
+    painter.drawText(QRect(-60, -60, 120, 70), Qt::AlignCenter, QString::number(currentValue));
+    painter.setFont(font_string);
+    painter.drawText(QRect(-60, -60, 120, 160), Qt::AlignCenter, "Km/h");
 }
 void Widget::drawGradation(QPainter &painter) {
     //画刻度
-    painter.setFont(QFont("华文宋体", 15));
+    painter.setFont(QFont("Arial", 15));
+    painter.setPen(QPen(Qt::white, 3));
     //旋转坐标系
     painter.rotate(135);//旋转135度(相比前一次的painter位置旋转)
 
@@ -68,6 +78,9 @@ void Widget::drawGradation(QPainter &painter) {
     double angle_move;//指针相对于零刻度移动的角度
     //angle_move=angle*i%45 sin(angle_move)=y/r cos(angle_move)=x/r
     for (int i = 0; i <= 60; i++) {
+        if (i >= 40) {
+            painter.setPen(QPen(Qt::red, 3));
+        }
         if (i % 5 == 0) {
             angle_move = fmod(angle * i, 45.0);
             x = cos(angle_move) * r;
@@ -76,6 +89,7 @@ void Widget::drawGradation(QPainter &painter) {
             painter.save();//保存原位置
             painter.translate(targetX, 0);
             painter.rotate(90);
+            painter.setPen(QPen(Qt::white));
             painter.drawText(-10, 4, QString::number(i * 4));
             painter.restore();//恢复原位置
             //画大刻度
@@ -88,17 +102,37 @@ void Widget::drawGradation(QPainter &painter) {
         painter.rotate(angle);
     }
 }
-void Widget::drawPointer(QPainter &painter, int r) {
+void Widget::drawPointer(QPainter &painter) {
     painter.restore();//坐标轴回到初始位置
     painter.save();
+    painter.setBrush(Qt::white);
+    painter.setPen(Qt::NoPen);
+    static const QPointF points[3] = {
+        QPointF(0, -15),
+        QPointF(0, 15),
+        QPointF(200, -1),
+    };//绘制多边形
     painter.rotate(135 + currentValue * angle);
-    painter.drawLine(r, 0, r * 4 - 62, 0);
+    painter.drawPolygon(points, 4);
+    // painter.drawLine(r, 0, r * 4 - 62, 0);
 }
 void Widget::draw_Pie(QPainter &painter, int r) {
     painter.restore();
     painter.setPen(Qt::NoPen);
-    painter.setBrush(QColor(255, 0, 0, 150));
+    painter.setBrush(QColor(255, 0, 0, 100));
     painter.drawPie(QRect(-r / 2 + 60, -r / 2 + 60, r - 120, r - 120), (- 135) * 16, -angle * currentValue * 16);
+}
+void Widget::drawEllipseInnerBlack(QPainter &painter, int r) {
+    painter.setBrush(QColor(Qt::black));
+    painter.drawEllipse(QPoint(0, 0), r, r);
+}
+void Widget::drawEllipseInnerShine(QPainter &painter, int r) {
+    QRadialGradient radialGradient(0, 0, r);
+    radialGradient.setColorAt(0.0, QColor(Qt::red)); //中心颜色
+    radialGradient.setColorAt(1.0, QColor(255, 200, 200, 0)); //外围颜色
+    QBrush brush(radialGradient);
+    painter.setBrush(brush);
+    painter.drawEllipse(QPoint(0, 0), r, r);
 }
 void Widget::paintEvent(QPaintEvent *event) {
     QPainter painter(this);
@@ -106,14 +140,19 @@ void Widget::paintEvent(QPaintEvent *event) {
     initCanvas(painter);
     //画小圆
     drawMiddleCircle(painter, height() / 8);
-    //画值
-    drawMiddleValue(painter);
 
     //画刻度
     drawGradation(painter);
     //画指针
 
-    drawPointer(painter, height() / 8);
+    drawPointer(painter);
     //画扇形
     draw_Pie(painter, height());
+    //小圈发光部
+    drawEllipseInnerShine(painter, height() / 5);
+    //画小圈纯黑色内部
+    drawEllipseInnerBlack(painter, height() / 8);
+
+    //当前速度值
+    drawMiddleValue(painter);
 }

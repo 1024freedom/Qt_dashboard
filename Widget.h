@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <QPaintEvent>
 #include<QTimer>
+#include <QPointF>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -24,8 +25,10 @@ protected:
     void drawMiddleCircle(QPainter& painter, int r);
     void drawMiddleValue(QPainter& painter);
     void drawGradation(QPainter& painter);
-    void drawPointer(QPainter& painter, int r);
+    void drawPointer(QPainter& painter);
     void draw_Pie(QPainter& painter, int r);
+    void drawEllipseInnerBlack(QPainter& painter, int r);
+    void drawEllipseInnerShine(QPainter& painter, int r);
 private:
     Ui::Widget* ui;
     QTimer* timer;
